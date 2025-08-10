@@ -1,0 +1,166 @@
+`qr-code-maker.html`
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Maker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        .qr-code-container {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .qr-code-preview {
+            transition: all 0.3s ease;
+            max-width: 100%;
+        }
+        .error-message {
+            color: #ef4444;
+            margin-top: 0.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-md p-6 w-full max-w-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">QR Code Generator</h1>
+        
+        <div class="mb-6">
+            <label for="url-input" class="block text-sm font-medium text-gray-700 mb-2">
+                Enter URL to generate QR Code
+            </label>
+            <input 
+                type="url" 
+                id="url-input" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                placeholder="https://example.com"
+                required
+            >
+            <div id="error-message" class="error-message">
+                Please enter a valid URL starting with http:// or https://
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+            <div class="flex gap-4">
+                <div class="flex items-center">
+                    <input id="color-black" type="radio" name="color" value="#000000" class="h-4 w-4 text-blue-600 focus:ring-blue-500" checked>
+                    <label for="color-black" class="ml-2 block text-sm text-gray-700">Black</label>
+                </div>
+                <div class="flex items-center">
+                    <input id="color-blue" type="radio" name="color" value="#3b82f6">
+                    <label for="color-blue" class="ml-2 block text-sm text-gray-700">Blue</label>
+                </div>
+                <div class="flex items-center">
+                    <input id="color-red" type="radio" name="color" value="#ef4444">
+                    <label for="color-red" class="ml-2 block text-sm text-gray-700">Red</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="qr-code-container">
+            <div id="qr-code" class="qr-code-preview">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/2dbac90d-f719-45d6-9f31-220a99b219bf.png" alt="QR code placeholder - will show generated QR code after entering URL" />
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 mt-4">
+            <button 
+                id="generate-btn" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex-1"
+            >
+                Generate QR Code
+            </button>
+            <button 
+                id="download-btn" 
+                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex-1"
+                disabled
+            >
+                Download
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlInput = document.getElementById('url-input');
+            const generateBtn = document.getElementById('generate-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const qrCodeContainer = document.getElementById('qr-code');
+            const errorMessage = document.getElementById('error-message');
+            
+            // Function to validate URL
+            function isValidUrl(url) {
+                try {
+                    new URL(url);
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+
+            // Generate QR code
+            generateBtn.addEventListener('click', function() {
+                const url = urlInput.value.trim();
+                const color = document.querySelector('input[name="color"]:checked').value;
+                
+                if (!isValidUrl(url)) {
+                    errorMessage.style.display = 'block';
+                    urlInput.focus();
+                    return;
+                }
+
+                errorMessage.style.display = 'none';
+                
+                qrCodeContainer.innerHTML = '';
+                
+                QRCode.toCanvas(url, {
+                    color: {
+                        dark: color,
+                        light: '#ffffff'
+                    },
+                    width: 200
+                }, function(err, canvas) {
+                    if (err) {
+                        console.error(err);
+                        errorMessage.textContent = 'Failed to generate QR code. Please try again.';
+                        errorMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    qrCodeContainer.appendChild(canvas);
+                    downloadBtn.disabled = false;
+                    
+                    // Set up download functionality
+                    downloadBtn.addEventListener('click', function() {
+                        const link = document.createElement('a');
+                        link.download = 'qr-code.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    });
+                });
+            });
+
+            // Enable Generate button when URL is entered
+            urlInput.addEventListener('input', function() {
+                if (urlInput.value.trim() !== '') {
+                    generateBtn.disabled = false;
+                } else {
+                    generateBtn.disabled = true;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+```
